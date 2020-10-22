@@ -1,0 +1,10 @@
+spring:
+  output:
+    ansi:
+      enabled: always
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/vidio_pns
+    username: postgres
+    password:
+
