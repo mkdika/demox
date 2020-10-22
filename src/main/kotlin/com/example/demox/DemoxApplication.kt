@@ -15,6 +15,7 @@ import org.springframework.jdbc.core.RowMapper
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Service
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -23,6 +24,9 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import javax.validation.Valid
+import javax.validation.constraints.NotEmpty
+import javax.validation.constraints.NotNull
 
 @SpringBootApplication
 class DemoxApplication
@@ -31,6 +35,7 @@ fun main(args: Array<String>) {
     runApplication<DemoxApplication>(*args)
 }
 
+@Validated
 @RestController
 class TestController {
 
@@ -45,22 +50,31 @@ class TestController {
     @PostMapping(
         value = ["/waktu"],
         consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun addWaktu(@RequestBody req: Waktu): ResponseEntity<Any?> {
+    fun addWaktu(@RequestBody @Valid req: List<Waktu>): ResponseEntity<Any?> {
 
-        databasePort.insertWaktu(req)
-        val data = databasePort.getWaktu(req.id)
-        println("data:\n$data")
-        return ResponseEntity.ok("ok, waktu: $data")
+        println("payload:\n$req")
+        return ResponseEntity.ok("ok")
+
+//        databasePort.insertWaktu(req)
+//        val data = databasePort.getWaktu(req.id)
+//        println("data:\n$data")
+//        return ResponseEntity.ok("ok, waktu: $data")
     }
 }
 
 data class Waktu(
     @field:JsonProperty("id")
-    var id: Int,
+    val id: Int,
+
+    @field:NotEmpty(message = "note tidak boleh kosong")
+    val note: String,
+
+    @field:NotNull(message = "ukuran tidak boleh kosong")
+    val ukuran: Int,
 
     @field:JsonProperty("kapan")
     @field:JsonDeserialize(using = KapanToUTC::class)
-    var kapan: LocalDateTime
+    val kapan: LocalDateTime
 )
 
 @Service
@@ -100,7 +114,9 @@ class WaktuRowMapper : RowMapper<Waktu> {
     override fun mapRow(rs: ResultSet, rowNum: Int): Waktu {
         return Waktu(
             id = rs.getInt("ID"),
-            kapan = rs.getTimestamp("KAPAN").toLocalDateTime()
+            kapan = rs.getTimestamp("KAPAN").toLocalDateTime(),
+            note = "aaa",
+            ukuran = 1
         )
     }
 }
